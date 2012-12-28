@@ -1,13 +1,17 @@
 package com.pusher.client;
 
+import com.pusher.client.channel.Channel;
+import com.pusher.client.channel.ChannelEventListener;
+import com.pusher.client.channel.PublicChannel;
 import com.pusher.client.connection.Connection;
 import com.pusher.client.connection.ConnectionEventListener;
+import com.pusher.client.connection.ConnectionState;
+import com.pusher.client.connection.InternalConnection;
 import com.pusher.client.util.Factory;
 
 public class Pusher {
 
-    private final Connection connection;
-    private final String apiKey;
+    private final InternalConnection connection;
     
     public Pusher(String apiKey) {
 	
@@ -15,25 +19,37 @@ public class Pusher {
 	    throw new IllegalArgumentException("API Key cannot be null or empty");
 	}
 	
-	this.apiKey = apiKey;
-	this.connection = Factory.newConnection();
+	this.connection = Factory.newConnection(apiKey);
     }
     
     /* Connection methods */
     
-    public Connection getConnection()
-    {
+    public Connection getConnection() {
 	return connection;
     }
     
-    public void connect()
-    {
-	connection.connect(apiKey);
+    public void connect() {
+	connection.connect();
     }
     
-    public void connect(ConnectionEventListener eventListener)
-    {
+    public void connect(ConnectionEventListener eventListener) {
 	connection.setEventListener(eventListener);
-	connection.connect(apiKey);
+	connection.connect();
+    }
+    
+    public Channel subscribe(String channelName, ChannelEventListener listener, String... eventNames) {
+	
+	if(connection.getState() != ConnectionState.CONNECTED) {
+	    throw new IllegalStateException("Cannot subscribe to public channel " + channelName + " while not connected");
+	}
+	
+	PublicChannel channel = Factory.newPublicChannel(channelName);
+	for(String eventName : eventNames) {
+	    channel.bind(eventName, listener);
+	}
+	
+	connection.subscribeTo(channel);
+	
+	return channel;
     }
 }

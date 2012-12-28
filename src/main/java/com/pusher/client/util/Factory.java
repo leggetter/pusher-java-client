@@ -1,11 +1,42 @@
 package com.pusher.client.util;
 
-import com.pusher.client.connection.Connection;
-import com.pusher.client.connection.WebsocketConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.java_websocket.client.WebSocketClient;
+
+import com.pusher.client.channel.PublicChannel;
+import com.pusher.client.connection.InternalConnection;
+import com.pusher.client.connection.websocket.WebSocketClientWrapper;
+import com.pusher.client.connection.websocket.WebSocketListener;
+import com.pusher.client.connection.websocket.WebsocketConnection;
 
 public class Factory {
 
-    public static Connection newConnection() {
-	return new WebsocketConnection();
+    private static ExecutorService eventQueue;
+    
+    public static InternalConnection newConnection(String apiKey) {
+	try {
+	    return new WebsocketConnection(apiKey);
+	} catch (URISyntaxException e) {
+	    throw new IllegalArgumentException("Failed to initialise connection", e);
+	}
+    }
+
+    public static WebSocketClient newWebSocketClientWrapper(URI uri, WebSocketListener proxy) {
+	return new WebSocketClientWrapper(uri, proxy);
+    }
+    
+    public static ExecutorService getEventQueue() {
+	if(eventQueue == null) {
+	    eventQueue = Executors.newSingleThreadExecutor();
+	}
+	return eventQueue;
+    }
+
+    public static PublicChannel newPublicChannel(String channelName) {
+	return new PublicChannel(channelName);
     }
 }
