@@ -1,5 +1,16 @@
 com.pusher.client
 com.pusher.client.channel
+com.pusher.client.channel.impl
 com.pusher.client.connection
+com.pusher.client.connection.impl
+com.pusher.client.connection.websocket
 com.pusher.client.example
 com.pusher.client.util
+org.java_websocket
+org.java_websocket.client
+org.java_websocket.drafts
+org.java_websocket.exceptions
+org.java_websocket.framing
+org.java_websocket.handshake
+org.java_websocket.server
+org.java_websocket.util
