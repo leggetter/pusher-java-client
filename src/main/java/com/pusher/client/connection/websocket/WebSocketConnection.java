@@ -40,7 +40,7 @@ public class WebSocketConnection implements InternalConnection,
 
 	private final Map<ConnectionState, Set<ConnectionEventListener>> eventListeners = new HashMap<ConnectionState, Set<ConnectionEventListener>>();
 	private volatile ConnectionState state = ConnectionState.DISCONNECTED;
-	private WebSocketClient underlyingConnection;
+	private WebSocketClientWrapper underlyingConnection;
 	private final URI webSocketUri;
 	private String socketId;
 
