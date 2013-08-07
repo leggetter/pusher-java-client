@@ -17,7 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketClientWrapperTest {
     
-    private WebSocketClientWrapper wrapper;
+    private WebSocketClientEventHandler wrapper;
     private @Mock WebSocketListener mockProxy;
     private @Mock ServerHandshake mockHandshake;
     
