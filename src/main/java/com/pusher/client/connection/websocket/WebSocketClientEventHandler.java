@@ -1,10 +1,8 @@
 package com.pusher.client.connection.websocket;
 
-import org.java_websocket.handshake.ServerHandshake;
-
 public interface WebSocketClientEventHandler {
 
-	public abstract void onOpen(ServerHandshake handshakedata);
+	public abstract void onOpen();
 
 	public abstract void onMessage(String message);
 

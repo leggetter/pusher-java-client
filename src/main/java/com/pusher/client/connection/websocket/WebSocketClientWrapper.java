@@ -11,81 +11,99 @@ import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import de.tavendo.autobahn.WebSocket.WebSocketConnectionObserver;
+import de.tavendo.autobahn.WebSocketException;
+
 /**
  * A thin wrapper around the WebSocketClient class from the Java-WebSocket
  * library. The purpose of this class is to enable the WebSocketConnection class
  * to be unit tested by swapping out an instance of this wrapper for a mock
  * version.
  */
-public class WebSocketClientWrapper extends WebSocketClient
+public class WebSocketClientWrapper
 	implements WebSocketClientEventHandler {
 
-	private static final String WSS_SCHEME = "wss";
 	private final WebSocketListener proxy;
+	
+	private final de.tavendo.autobahn.WebSocketConnection connection;
+	private URI uri;
 
 	public WebSocketClientWrapper(URI uri, WebSocketListener proxy)
 			throws SSLException {
-		super(uri);
+		connection = new de.tavendo.autobahn.WebSocketConnection();
 
-		if (uri.getScheme().equals(WSS_SCHEME)) {
-			try {
-				SSLContext sslContext = SSLContext.getInstance("TLS");
-				sslContext.init(null, null, null);
-
-				this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(
-						sslContext));
-			} catch (NoSuchAlgorithmException e) {
-				throw new SSLException(e);
-			} catch (KeyManagementException e) {
-				throw new SSLException(e);
-			}
-		}
-
+		this.uri = uri;
 		this.proxy = proxy;
 	}
 	
 	@Override
 	public void close() {
-		super.close();
+		this.connection.disconnect();
 	}
 	
 	@Override
 	public void connect() {
-		super.connect();
+
+		try {
+			this.connection.connect(this.uri, new WebSocketConnectionObserver() {
+
+				@Override
+				public void onOpen() {
+					WebSocketClientWrapper.this.onOpen();
+				}
+
+				@Override
+				public void onClose(WebSocketCloseNotification code, String reason) {
+					// TODO: any way of determining if the remote/server closed the connection?
+					WebSocketClientWrapper.this.onClose(code.ordinal(), reason, false);
+					
+				}
+
+				@Override
+				public void onTextMessage(String payload) {
+					WebSocketClientWrapper.this.onMessage(payload);
+				}
+
+				@Override
+				public void onRawTextMessage(byte[] payload) {
+					// not supported
+					// TODO: throw exception
+				}
+
+				@Override
+				public void onBinaryMessage(byte[] payload) {
+					// not supported
+					// TODO: throw exception
+				}
+				
+			});
+		} catch (WebSocketException e) {
+			// TODO Auto-generated catch block
+			// call onException
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
 	public void send(String message) {
-		super.send(message);
+		this.connection.sendTextMessage(message);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.pusher.client.connection.websocket.WebSocketClientListener#onOpen(org.java_websocket.handshake.ServerHandshake)
-	 */
 	@Override
-	public void onOpen(ServerHandshake handshakedata) {
-		proxy.onOpen(handshakedata);
+	public void onOpen() {
+		proxy.onOpen();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.pusher.client.connection.websocket.WebSocketClientListener#onMessage(java.lang.String)
-	 */
 	@Override
 	public void onMessage(String message) {
 		proxy.onMessage(message);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.pusher.client.connection.websocket.WebSocketClientListener#onClose(int, java.lang.String, boolean)
-	 */
 	@Override
 	public void onClose(int code, String reason, boolean remote) {
 		proxy.onClose(code, reason, remote);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.pusher.client.connection.websocket.WebSocketClientListener#onError(java.lang.Exception)
-	 */
 	@Override
 	public void onError(Exception ex) {
 		proxy.onError(ex);

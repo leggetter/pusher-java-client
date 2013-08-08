@@ -237,7 +237,7 @@ public class WebSocketConnection implements InternalConnection,
 	/* WebSocketListener implementation */
 
 	@Override
-	public void onOpen(ServerHandshake handshakedata) {
+	public void onOpen() {
 		// TODO: log the handshake data
 	}
 
